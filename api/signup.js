@@ -26,24 +26,34 @@ router.get("/:username", async (req, res) => {
     return res.status(200).send("Available");
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Server error");
+    return res.status(500).send(`Server error`);
   }
 });
 
 router.post("/", async (req, res) => {
-  const { name, email, password, bio, facebook, youtube, twitter, instagram } =
-    req.body.user;
+  const {
+    name,
+    email,
+    username,
+    password,
+    bio,
+    facebook,
+    youtube,
+    twitter,
+    instagram,
+  } = req.body.user;
 
   if (!isEmail(email)) return res.status(401).send("Invalid Email");
 
-  if (password.length < 6)
-    return res.status(401).send("Password must be at least 6 characters");
+  if (password.length < 6) {
+    return res.status(401).send("Password must be atleast 6 characters");
+  }
 
   try {
     let user;
     user = await UserModel.findOne({ email: email.toLowerCase() });
     if (user) {
-      return res.status(401).send("User alreadt registered");
+      return res.status(401).send("User already registered");
     }
 
     user = new UserModel({
@@ -79,7 +89,7 @@ router.post("/", async (req, res) => {
     jwt.sign(
       payload,
       process.env.jwtSecret,
-      { expriesIn: "2d" },
+      { expiresIn: "2d" },
       (err, token) => {
         if (err) throw err;
         res.status(200).json(token);
@@ -87,7 +97,7 @@ router.post("/", async (req, res) => {
     );
   } catch (error) {
     console.error(error);
-    return res.status(500).send("Server error");
+    return res.status(500).send(`Server error`);
   }
 });
 
