@@ -2,14 +2,9 @@ import React from "react";
 import axios from "axios";
 import baseUrl from "../utils/baseUrl";
 
-function Index({ posts }) {
-  return (
-    <div>
-      {posts &&
-        posts.length > 0 &&
-        posts.map((post) => <h1 key={post.id}>{post.title}</h1>)}
-    </div>
-  );
+function Index({ user, userFollowStats }) {
+  console.log({ user, userFollowStats });
+  return <div>Homepage</div>;
 }
 
 Index.getInitialProps = async (ctx) => {
