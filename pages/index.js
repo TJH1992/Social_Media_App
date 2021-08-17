@@ -1,20 +1,25 @@
-import React from "react";
+import React, { useEffect } from "react";
 import axios from "axios";
 import baseUrl from "../utils/baseUrl";
 
 function Index({ user, userFollowStats }) {
-  console.log({ user, userFollowStats });
+  useEffect(() => {
+    document.title = `Welcome, ${user.name.split(" ")[0]}`;
+  }, []);
+
   return <div>Homepage</div>;
 }
 
 Index.getInitialProps = async (ctx) => {
   try {
-    const res = await axios.get("https://jsonplaceholder.typicode.com/posts");
+    const { token } = parseCookies(ctx);
 
-    const { name } = ctx.query;
-    console.log(name);
+    const res = await axios.get(`${baseUrl}/api/posts`, {
+      headers: { Authorization: token },
+      params: { pageNumber: 1 },
+    });
 
-    return { posts: res.data };
+    return { postsData: res.data };
   } catch (error) {
     return { errorLoading: true };
   }

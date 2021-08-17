@@ -1,57 +1,60 @@
-import App from "next/app";
 import axios from "axios";
 import { parseCookies, destroyCookie } from "nookies";
 import baseUrl from "../utils/baseUrl";
 import { redirectUser } from "../utils/authUser";
 import Layout from "../components/Layout/Layout";
+import "react-toastify/dist/ReactToastify.css";
 import "semantic-ui-css/semantic.min.css";
 
-class MyApp extends App {
-  static async getInitialProps({ Component, ctx }) {
-    const { token } = parseCookies(ctx);
+function MyApp({ Component, pageProps }) {
+  return (
+    <Layout {...pageProps}>
+      <Component {...pageProps} />
+    </Layout>
+  );
+}
 
-    const protectedRoutes = ctx.pathname === "/";
+MyApp.getInitialProps = async ({ Component, ctx }) => {
+  const { token } = parseCookies(ctx);
+  let pageProps = {};
 
-    if (!token) {
-      protectedRoutes && redirectUser(ctx, "/login");
-    } else {
-      if (Component.getInitialProps) {
-        pageProps = await Component.getInitialProps(ctx);
-      }
+  const protectedRoutes =
+    ctx.pathname === "/" ||
+    ctx.pathname === "/[username]" ||
+    ctx.pathname === "/notifications" ||
+    ctx.pathname === "/post/[postId]" ||
+    ctx.pathname === "/messages" ||
+    ctx.pathname === "/search";
 
-      try {
-        const res = await axios.get(`${baseUrl}/api/auth`, {
-          headers: { Authorization: token },
-        });
-        const { user, userFollowStats } = res.data;
-        if (user) !protectedRoutes && redirectUser(ctx, "/");
-        pageProps.user = user;
-        pageProps.userFollowStats = userFollowStats;
-      } catch (error) {
-        destroyCookie(ctx, "token");
-        redirectUser(ctx, "/login");
-      }
-    }
-    let pageProps = {};
-
+  if (!token) {
+    destroyCookie(ctx, "token");
+    protectedRoutes && redirectUser(ctx, "/login");
+  }
+  //
+  else {
     if (Component.getInitialProps) {
       pageProps = await Component.getInitialProps(ctx);
+      console.log(pageProps);
     }
 
-    console.log(pageProps);
+    try {
+      const res = await axios.get(`${baseUrl}/api/auth`, {
+        headers: { Authorization: token },
+      });
 
-    return { pageProps };
+      const { user, userFollowStats } = res.data;
+
+      if (user) !protectedRoutes && redirectUser(ctx, "/");
+
+      pageProps.user = user;
+      pageProps.userFollowStats = userFollowStats;
+    } catch (error) {
+      destroyCookie(ctx, "token");
+      redirectUser(ctx, "/login");
+    }
   }
 
-  render() {
-    const { Component, pageProps } = this.props;
-
-    return (
-      <Layout {...pageProps}>
-        <Component {...pageProps} />
-      </Layout>
-    );
-  }
-}
+  return { pageProps };
+};
 
 export default MyApp;
